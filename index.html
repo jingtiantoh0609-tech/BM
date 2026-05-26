@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Bahasa Melayu Match & Clear Game</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Comic Sans MS', sans-serif;
+}
+
+body{
+    background: linear-gradient(135deg,#bde0fe,#ffd6a5,#caffbf);
+    min-height:100vh;
+    overflow-x:hidden;
+    color:#333;
+}
+
+.hidden{
+    display:none;
+}
+
+.screen{
+    width:100%;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+
+h1{
+    font-size:3rem;
+    color:#ff4d6d;
+    text-shadow:3px 3px 0px white;
+    margin-bottom:15px;
+    text-align:center;
+}
+
+.subtitle{
+    font-size:1.2rem;
+    margin-bottom:20px;
+    text-align:center;
+}
+
+.mascot{
+    font-size:100px;
+    animation:bounce 2s infinite;
+}
+
+@keyframes bounce{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-15px);}
+}
+
+.menu-buttons{
+    display:flex;
+    flex-wrap:wrap;
+    gap:15px;
+    justify-content:center;
+    margin-top:20px;
+}
+
+button{
+    border:none;
+    border-radius:20px;
+    padding:15px 25px;
+    font-size:1rem;
+    cursor:pointer;
+    transition:0.3s;
+    font-weight:bold;
+}
+
+button:hover{
+    transform:scale(1.08);
+}
+
+.start-btn{
+    background:#ff4d6d;
+    color:white;
+}
+
+.level-btn{
+    background:#4dabf7;
+    color:white;
+}
+
+.music-btn{
+    background:#51cf66;
+    color:white;
+}
+
+.game-container{
+    width:100%;
+    max-width:1200px;
+}
+
+.top-bar{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:20px;
+}
+
+.info-box{
+    background:white;
+    padding:10px 15px;
+    border-radius:15px;
+    font-weight:bold;
+    box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+
+.progress-container{
+    width:100%;
+    background:white;
+    height:20px;
+    border-radius:20px;
+    overflow:hidden;
+    margin-bottom:20px;
+}
+
+.progress-bar{
+    width:0%;
+    height:100%;
+    background:linear-gradient(to right,#4dabf7,#51cf66);
+    transition:0.3s;
+}
+
+.game-board{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+    gap:15px;
+}
+
+.card{
+    height:150px;
+    perspective:1000px;
+}
+
+.card-inner{
+    width:100%;
+    height:100%;
+    position:relative;
+    transform-style:preserve-3d;
+    transition:transform 0.6s;
+}
+
+.card.flipped .card-inner{
+    transform:rotateY(180deg);
+}
+
+.card-front,
+.card-back{
+    position:absolute;
+    width:100%;
+    height:100%;
+    border-radius:20px;
+    backface-visibility:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:10px;
+    font-weight:bold;
+    box-shadow:0 5px 10px rgba(0,0,0,0.15);
+}
+
+.card-front{
+    background:#fff3bf;
+    font-size:45px;
+}
+
+.card-back{
+    background:white;
+    transform:rotateY(180deg);
+    flex-direction:column;
+    gap:5px;
+}
+
+.word{
+    font-size:1.2rem;
+    color:#ff4d6d;
+}
+
+.chinese{
+    color:#4dabf7;
+}
+
+.example{
+    font-size:0.8rem;
+}
+
+.pronounce{
+    background:#ffd43b;
+    padding:5px 10px;
+    border-radius:10px;
+    font-size:0.8rem;
+}
+
+.matched{
+    animation:pop 0.5s forwards;
+}
+
+@keyframes pop{
+    0%{transform:scale(1);}
+    100%{
+        transform:scale(0);
+        opacity:0;
+    }
+}
+
+.message{
+    position:fixed;
+    top:20px;
+    left:50%;
+    transform:translateX(-50%);
+    background:white;
+    padding:15px 30px;
+    border-radius:20px;
+    font-size:1.5rem;
+    font-weight:bold;
+    z-index:999;
+    box-shadow:0 5px 15px rgba(0,0,0,0.2);
+    animation:fade 2s forwards;
+}
+
+@keyframes fade{
+    0%{opacity:0;transform:translateX(-50%) translateY(-20px);}
+    20%{opacity:1;}
+    80%{opacity:1;}
+    100%{opacity:0;}
+}
+
+.star{
+    position:fixed;
+    font-size:30px;
+    animation:fall 2s linear forwards;
+}
+
+@keyframes fall{
+    0%{
+        transform:translateY(-50px) rotate(0deg);
+        opacity:1;
+    }
+    100%{
+        transform:translateY(100vh) rotate(360deg);
+        opacity:0;
+    }
+}
+
+.end-screen{
+    text-align:center;
+}
+
+.final-score{
+    font-size:2rem;
+    margin:20px 0;
+}
+
+@media(max-width:600px){
+    h1{
+        font-size:2rem;
+    }
+
+    .card{
+        height:130px;
+    }
+
+    .word{
+        font-size:1rem;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- HOME SCREEN -->
+<div id="homeScreen" class="screen">
+    <div class="mascot">🐻</div>
+
+    <h1>Bahasa Melayu Match Game</h1>
+
+    <p class="subtitle">
+        Learn Bahasa Melayu Vocabulary Fun Way!
+    </p>
+
+    <div class="menu-buttons">
+        <button class="start-btn" onclick="startGame()">
+            ▶ Start Game
+        </button>
+
+        <button class="level-btn" onclick="changeLevel()">
+            ⭐ Choose Level
+        </button>
+
+        <button class="music-btn" onclick="toggleMusic()">
+            🎵 Music
+        </button>
+    </div>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="gameScreen" class="screen hidden">
+
+    <div class="game-container">
+
+        <div class="top-bar">
+
+            <div class="info-box">
+                ⭐ Stars: <span id="stars">0</span>
+            </div>
+
+            <div class="info-box">
+                🏆 Score: <span id="score">0</span>
+            </div>
+
+            <div class="info-box">
+                🔥 Combo: <span id="combo">0</span>
+            </div>
+
+            <div class="info-box">
+                ⏰ Time: <span id="time">60</span>
+            </div>
+
+            <div class="info-box">
+                📚 Level: <span id="level">1</span>
+            </div>
+
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div class="game-board" id="gameBoard"></div>
+
+    </div>
+</div>
+
+<!-- END SCREEN -->
+<div id="endScreen" class="screen hidden">
+
+    <div class="mascot">🎉</div>
+
+    <h1>Great Job!</h1>
+
+    <div class="final-score">
+        Final Score: <span id="finalScore"></span>
+    </div>
+
+    <div class="final-score">
+        Stars Earned: <span id="finalStars"></span>
+    </div>
+
+    <div class="final-score">
+        New Words Learned: <span id="learnedWords"></span>
+    </div>
+
+    <button class="start-btn" onclick="restartGame()">
+        🔄 Play Again
+    </button>
+
+</div>
+
+<script>
+
+const vocabulary = [
+
+{
+emoji:"🐱",
+word:"Kucing",
+meaning:"猫",
+sentence:"Ini seekor kucing."
+},
+
+{
+emoji:"🐶",
+word:"Anjing",
+meaning:"狗",
+sentence:"Anjing itu comel."
+},
+
+{
+emoji:"🍎",
+word:"Epal",
+meaning:"苹果",
+sentence:"Saya makan epal."
+},
+
+{
+emoji:"🍔",
+word:"Burger",
+meaning:"汉堡",
+sentence:"Burger itu sedap."
+},
+
+{
+emoji:"🚌",
+word:"Bas",
+meaning:"巴士",
+sentence:"Saya naik bas."
+},
+
+{
+emoji:"🚗",
+word:"Kereta",
+meaning:"汽车",
+sentence:"Ayah memandu kereta."
+},
+
+{
+emoji:"☀️",
+word:"Panas",
+meaning:"晴天",
+sentence:"Hari ini panas."
+},
+
+{
+emoji:"🌧️",
+word:"Hujan",
+meaning:"下雨",
+sentence:"Sekarang hujan."
+}
+
+];
+
+let cards = [];
+let flippedCards = [];
+let matchedPairs = 0;
+let score = 0;
+let stars = 0;
+let combo = 0;
+let level = 1;
+let timeLeft = 60;
+let timer;
+
+const gameBoard = document.getElementById("gameBoard");
+
+function startGame(){
+
+    document.getElementById("homeScreen").classList.add("hidden");
+    document.getElementById("gameScreen").classList.remove("hidden");
+
+    setupGame();
+    startTimer();
+}
+
+function setupGame(){
+
+    gameBoard.innerHTML = "";
+    cards = [];
+
+    vocabulary.forEach(item=>{
+
+        cards.push({
+            type:"emoji",
+            content:item.emoji,
+            pair:item.word,
+            data:item
+        });
+
+        cards.push({
+            type:"word",
+            content:item.word,
+            pair:item.word,
+            data:item
+        });
+
+    });
+
+    cards.sort(()=>Math.random()-0.5);
+
+    cards.forEach((card,index)=>{
+
+        const cardDiv = document.createElement("div");
+        cardDiv.className = "card";
+
+        cardDiv.innerHTML = `
+        <div class="card-inner">
+
+            <div class="card-front">
+                ❓
+            </div>
+
+            <div class="card-back">
+
+                <div style="font-size:40px;">
+                    ${card.type==="emoji" ? card.content : "📘"}
+                </div>
+
+                <div class="word">
+                    ${card.type==="word" ? card.content : card.data.word}
+                </div>
+
+                <div class="chinese">
+                    ${card.data.meaning}
+                </div>
+
+                <div class="example">
+                    ${card.data.sentence}
+                </div>
+
+                <button class="pronounce"
+                onclick="speakWord('${card.data.word}')">
+                🔊 Speak
+                </button>
+
+            </div>
+
+        </div>
+        `;
+
+        cardDiv.addEventListener("click",()=>flipCard(cardDiv,card));
+
+        gameBoard.appendChild(cardDiv);
+
+    });
+
+}
+
+function flipCard(cardDiv,card){
+
+    if(
+        flippedCards.length < 2 &&
+        !cardDiv.classList.contains("flipped")
+    ){
+
+        cardDiv.classList.add("flipped");
+
+        flippedCards.push({
+            cardDiv,
+            card
+        });
+
+        if(flippedCards.length===2){
+
+            checkMatch();
+
+        }
+
+    }
+
+}
+
+function checkMatch(){
+
+    const first = flippedCards[0];
+    const second = flippedCards[1];
+
+    if(first.card.pair===second.card.pair &&
+       first.card.type!==second.card.type){
+
+        matchedPairs++;
+        combo++;
+        score += 10 * combo;
+        stars++;
+
+        updateUI();
+
+        successSound();
+
+        showMessage(randomSuccess());
+
+        createStars();
+
+        setTimeout(()=>{
+
+            first.cardDiv.classList.add("matched");
+            second.cardDiv.classList.add("matched");
+
+        },500);
+
+        flippedCards=[];
+
+        updateProgress();
+
+        if(matchedPairs===vocabulary.length){
+
+            endGame();
+
+        }
+
+    }else{
+
+        combo = 0;
+        updateUI();
+
+        errorSound();
+
+        showMessage("Try Again 😊");
+
+        setTimeout(()=>{
+
+            first.cardDiv.classList.remove("flipped");
+            second.cardDiv.classList.remove("flipped");
+
+            flippedCards=[];
+
+        },1000);
+
+    }
+
+}
+
+function updateUI(){
+
+    document.getElementById("score").innerText = score;
+    document.getElementById("stars").innerText = stars;
+    document.getElementById("combo").innerText = combo;
+
+}
+
+function updateProgress(){
+
+    const progress =
+    (matchedPairs / vocabulary.length) * 100;
+
+    document.getElementById("progressBar").style.width =
+    progress + "%";
+
+}
+
+function showMessage(text){
+
+    const msg = document.createElement("div");
+
+    msg.className = "message";
+
+    msg.innerText = text;
+
+    document.body.appendChild(msg);
+
+    setTimeout(()=>{
+        msg.remove();
+    },2000);
+
+}
+
+function randomSuccess(){
+
+    const messages = [
+        "Great Job! 🎉",
+        "Excellent! 🌟",
+        "Awesome! 💖"
+    ];
+
+    return messages[
+        Math.floor(Math.random()*messages.length)
+    ];
+
+}
+
+function createStars(){
+
+    for(let i=0;i<5;i++){
+
+        const star = document.createElement("div");
+
+        star.className = "star";
+
+        star.innerText = "⭐";
+
+        star.style.left =
+        Math.random()*100 + "vw";
+
+        document.body.appendChild(star);
+
+        setTimeout(()=>{
+            star.remove();
+        },2000);
+
+    }
+
+}
+
+function speakWord(word){
+
+    const utterance =
+    new SpeechSynthesisUtterance(word);
+
+    utterance.lang = "ms-MY";
+
+    speechSynthesis.speak(utterance);
+
+}
+
+function startTimer(){
+
+    timer = setInterval(()=>{
+
+        timeLeft--;
+
+        document.getElementById("time").innerText =
+        timeLeft;
+
+        if(timeLeft<=0){
+
+            endGame();
+
+        }
+
+    },1000);
+
+}
+
+function endGame(){
+
+    clearInterval(timer);
+
+    document.getElementById("gameScreen")
+    .classList.add("hidden");
+
+    document.getElementById("endScreen")
+    .classList.remove("hidden");
+
+    document.getElementById("finalScore")
+    .innerText = score;
+
+    document.getElementById("finalStars")
+    .innerText = stars;
+
+    document.getElementById("learnedWords")
+    .innerText = matchedPairs;
+
+    victorySound();
+
+}
+
+function restartGame(){
+
+    location.reload();
+
+}
+
+function changeLevel(){
+
+    level++;
+
+    if(level>3){
+        level=1;
+    }
+
+    alert("Level Changed to " + level);
+
+    document.getElementById("level").innerText =
+    level;
+
+}
+
+function toggleMusic(){
+
+    alert("🎵 Background Music Button Ready!");
+
+}
+
+/* SOUND EFFECTS */
+
+function successSound(){
+
+    const ctx = new(window.AudioContext ||
+    window.webkitAudioContext)();
+
+    const osc = ctx.createOscillator();
+
+    osc.type = "triangle";
+
+    osc.frequency.value = 600;
+
+    osc.connect(ctx.destination);
+
+    osc.start();
+
+    osc.stop(ctx.currentTime + 0.15);
+
+}
+
+function errorSound(){
+
+    const ctx = new(window.AudioContext ||
+    window.webkitAudioContext)();
+
+    const osc = ctx.createOscillator();
+
+    osc.type = "sawtooth";
+
+    osc.frequency.value = 200;
+
+    osc.connect(ctx.destination);
+
+    osc.start();
+
+    osc.stop(ctx.currentTime + 0.15);
+
+}
+
+function victorySound(){
+
+    const ctx = new(window.AudioContext ||
+    window.webkitAudioContext)();
+
+    const osc = ctx.createOscillator();
+
+    osc.type = "square";
+
+    osc.frequency.value = 800;
+
+    osc.connect(ctx.destination);
+
+    osc.start();
+
+    osc.stop(ctx.currentTime + 0.4);
+
+}
+
+</script>
+
+</body>
+</html>
